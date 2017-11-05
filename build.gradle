@@ -1,0 +1,100 @@
+apply plugin: 'java'
+sourceCompatibility = '1.8'
+
+buildscript {
+    ext {
+        xjcVersion= '3.2.0'
+        jaxbOutputDir = "$buildDir/generated/cxf"
+        jaxb2BasicsVersion = '1.11.1'
+        cxfVersion = '3.2.0'
+    }    
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.1'
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs += "$jaxbOutputDir"
+            srcDirs += "$buildDir/generated/jaxb"
+        }
+    }
+}
+
+configurations {
+    cxf
+}
+
+apply plugin: 'org.junit.platform.gradle.plugin'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    cxf "org.apache.cxf:cxf-tools-wsdlto-core:$cxfVersion"
+    cxf "org.apache.cxf:cxf-tools-wsdlto-frontend-jaxws:$cxfVersion"
+    cxf "org.apache.cxf:cxf-tools-wsdlto-databinding-jaxb:$cxfVersion"
+
+    cxf "org.jvnet.jaxb2_commons:jaxb2-fluent-api:3.0"
+    cxf "org.apache.cxf.xjcplugins:cxf-xjc-ts:$xjcVersion"
+
+    cxf "org.jvnet.jaxb2_commons:jaxb2-basics:$jaxb2BasicsVersion"
+
+    compile 'org.apache.commons:commons-lang3:3.6'
+    compile "org.apache.cxf.xjc-utils:cxf-xjc-runtime:$cxfVersion"
+    compile "org.jvnet.jaxb2_commons:jaxb2-basics-runtime:$jaxb2BasicsVersion"
+    compile 'org.bouncycastle:bcpkix-jdk15on:1.58'
+    compile 'org.hsqldb:hsqldb:2.4.0'
+    compile 'org.hibernate:hibernate-core:5.2.12.Final'
+
+    testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.1'
+    testCompile 'org.hamcrest:hamcrest-core:1.3'
+    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.0.1'
+    testRuntime("org.junit.platform:junit-platform-runner:1.0.1")
+}
+
+junitPlatform {
+    platformVersion '1.0.1'
+    enableStandardTestTask true
+    filters {
+        excludeClassNamePattern '.*TicketsTest'
+    }
+}
+
+task wsdl2java(type: JavaExec) {
+    ext {
+         outputDir = file("$jaxbOutputDir")
+    }   
+    systemProperties  = ['javax.xml.accessExternalSchema': 'all' , 'file.encoding':'UTF8']
+    outputs.upToDateWhen { false }
+    outputs.dir outputDir
+    main = 'org.apache.cxf.tools.wsdlto.WSDLToJava'
+    classpath = project.configurations.cxf
+    args '-d', outputDir
+    args '-p', 'wsaa'
+    args '-fe', 'jaxws21'
+    args '-client'
+    args '-verbose'
+    args '-validate'
+    args '-mark-generated'
+    args '-xjc-Xfluent-api'
+    args '-xjc-Xts'
+    args '-xjc-XhashCode'
+    args '-xjc-Xequals'
+    args "https://wsaahomo.afip.gov.ar/ws/services/LoginCms?wsdl"
+}
+
+wsdl2java.onlyIf {!file("$jaxbOutputDir").exists()}
+
+task xsd2Java(type: Exec) {
+    commandLine 'sh', 'scripts/xsd.sh'
+}
+xsd2Java.onlyIf {!file("$buildDir/generated/jaxb").exists()}
+
+compileJava.dependsOn xsd2Java
+compileJava.dependsOn wsdl2java
