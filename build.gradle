@@ -98,3 +98,31 @@ xsd2Java.onlyIf {!file("$buildDir/generated/jaxb").exists()}
 
 compileJava.dependsOn xsd2Java
 compileJava.dependsOn wsdl2java
+
+task createDist {
+    doLast {
+        mkdir("$buildDir/bill")
+        mkdir("$buildDir/bill/conf")
+        mkdir("$buildDir/bill/bin")
+    }
+}
+
+task copyResources(type: Copy, dependsOn: 'createDist') {
+    from("src/main/resources/dist")
+    include("bin/**/*")
+    include("conf/**/*")
+    into "$buildDir/bill"
+}
+
+task copyLibs(type: Copy, dependsOn: ['jar', 'createDist']) {
+    into "$buildDir/bill/libs"
+    from configurations.runtime
+    from jar
+}
+
+task distZip(type: Zip, dependsOn: ['build', 'copyLibs', 'copyResources']) {
+    from("$buildDir")
+    include("libs/*")
+    archiveName "bill.zip"
+    destinationDir(file("$buildDir"))
+}

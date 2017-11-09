@@ -1,0 +1,2 @@
+#!/bin/sh
+java -cp "conf:libs/*" bill.cl.TicketCmd $1
