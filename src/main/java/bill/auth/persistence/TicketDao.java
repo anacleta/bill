@@ -10,9 +10,10 @@ import java.util.Properties;
 
 public class TicketDao {
     private final EntityManager entityManager;
+    private final EntityManagerFactory entityManagerFactory;
 
     public TicketDao(Properties properties) {
-        EntityManagerFactory entityManagerFactory = Persistence
+        entityManagerFactory = Persistence
                 .createEntityManagerFactory("org.hibernate.tutorial.jpa", properties);
         entityManager = entityManagerFactory.createEntityManager();
     }
@@ -48,6 +49,11 @@ public class TicketDao {
 
         entityManager.persist(entity);
         entityManager.getTransaction().commit();
+    }
+
+    public void close() {
+        this.entityManager.close();
+        this.entityManagerFactory.close();
     }
 
 }

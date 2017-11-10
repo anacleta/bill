@@ -8,15 +8,20 @@ import java.util.Properties;
 
 public class TicketCmd {
     public static void main(String[] args) {
+        Tickets tickets = null;
         try {
             Properties authConf = loadConf("/auth.properties");
             Properties persistenceConf = loadConf("/persistence.properties");
 
-            Tickets tickets = new Tickets(authConf, persistenceConf);
+            tickets = new Tickets(authConf, persistenceConf);
             Ticket ticket = tickets.getTicket(args[0]);
             System.out.println(ticket);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (tickets != null) {
+                tickets.close();
+            }
         }
     }
 

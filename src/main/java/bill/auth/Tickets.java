@@ -26,6 +26,10 @@ public class Tickets {
         return ticket;
     }
 
+    public void close() {
+        dao.close();
+    }
+
     private Ticket createTicket(String cuit) {
         Credentials credentials = this.credentials.get(cuit);
 
