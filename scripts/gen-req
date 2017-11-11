@@ -1,0 +1,21 @@
+#!/bin/sh
+# genreq <cuit> <nombre empresa> <servidor> [<nombre archivo>]
+
+CUIT=$1
+ORG=$2
+SERVER=$3
+KEY_NAME=$4
+
+if [ $# -lt 3 ]; then
+    echo "gen-req <cuit> <nombre empresa> <servidor> [<nombre archivo>]\n \
+        Por ejemplo: gen-req 20111111112 Coca-Cola coke.com coke"    
+    exit
+fi
+
+if [ -z "$KEY_NAME" ]; then
+    KEY_NAME=ucleoom
+fi    
+openssl req -new -newkey rsa:2048 -nodes -keyout $KEY_NAME.pem -days 365 -subj "/C=AR/O=$ORG/CN=$SERVER/serialNumber=CUIT $CUIT" -out $KEY_NAME.csr
+openssl pkcs8 -topk8 -in $KEY_NAME.pem -inform PEM -out $KEY_NAME.pk8 -nocrypt -outform DER
+echo "Archivos clave privada creados: $KEY_NAME.pem, $KEY_NAME.pk8"
+echo "Archivo solicitud de certificado creado: $KEY_NAME.csr"
