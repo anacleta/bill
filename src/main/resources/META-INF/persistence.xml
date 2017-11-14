@@ -7,7 +7,6 @@
         <properties>
             <property name="hibernate.current_session_context_class" value="thread"></property>
             <property name="hibernate.cache.provider_class" value="org.hibernate.cache.NoCacheProvider"></property>
-            <property name="hibernate.show_sql" value="true"></property>
             <property name="hibernate.hbm2ddl.auto" value="update"></property>
         </properties>
     </persistence-unit>
